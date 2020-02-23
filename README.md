@@ -12,4 +12,4 @@ Objectives of this module were:
 
 Once we completd the objectives, Basil and Sadhana would like to saw the earthquake data in relation to the tectonic plates’ location on the Earth. They can also see the third map. 
 
-![](/capture.png)
+![](/Capture.PNG)
