@@ -14,17 +14,29 @@ attribution: 'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap
     id: 'mapbox/satellite-streets-v11',
     accessToken: API_Key
 });
+
+// We create the light view tile layer that will be an option for our map.
+let lights = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+attribution: 'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery (c) <a href="https://www.mapbox.com/">Mapbox</a>',
+    maxZoom: 18,
+    id: 'mapbox/light-v10',
+    accessToken: API_Key
+});
+
 // Create a base layer that holds both maps.
 let baseMaps = {
     "Streets": streets,
-    "Satellite": satelliteStreets
+    "Satellite": satelliteStreets,
+    "Light": lights
 };
-// Create the earthquake layer for our map.
+// Create the earthquake layer and the techtonic layer for our map.
 let earthquakes = new L.LayerGroup();
-// We define an object that contains the overlays.
-// This overlay will be visible all the time.
+let techtonicplates = new L.LayerGroup();
+
+// This overlay will be visible all the time for the earthquakes and techtonic later
 let overlays = {
-    Earthquakes: earthquakes
+    Earthquakes: earthquakes,
+    Techtonic_Plates: techtonicplates
 };
 // Create the map object with center, zoom level and default layer.
 let map = L.map('mapid', {
@@ -37,12 +49,7 @@ let map = L.map('mapid', {
 L.control.layers(baseMaps, overlays).addTo(map);
 // Then we add our 'graymap' tile layer to the map.
 streets.addTo(map);
-// Accessing the Toronto neighborhoods GeoJSON URL.
-let torontoHoods = "https://raw.githubusercontent.com/jusnguyen03/Mapping_Earthquakes/master/torontoNeighborhoods.json";
-// Accessing the Toronto airline routes GeoJSON URL.
-let torontoData = "https://raw.githubusercontent.com/jusnguyen03/Mapping_Earthquakes/master/torontoRoutes.json";
-// Accessing the airport GeoJSON URL
-let airportData = "https://raw.githubusercontent.com/jusnguyen03/Mapping_Earthquakes/master/majorAirports.json";
+
 // Retrieve the earthquake GeoJSON data.
 d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson").then(function(data) {
   
@@ -102,6 +109,25 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geoj
             layer.bindPopup("Magnitude: " + feature.properties.mag + "<br>Location: " + feature.properties.place);
       }
   }).addTo(earthquakes);
+
+function styleLine(feature) {
+    return {
+      color: "#FF7800",
+      weight: 3,
+      opacity: 0.65
+    };
+    }
+
+// Retrieve the technotic layer GeoJSON data.
+d3.json("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json").then(function(data) {
+L.geoJson(data, {
+    pointToLayer: function(feature, latlng) {      
+        return L.lineString(latlng);
+      },
+  style: styleLine
+}).addTo(techtonicplates);
+ })});
+
 // Create a legend control object.
 let legend = L.control({
     position: "bottomright"
@@ -128,6 +154,6 @@ for (var i = 0; i < magnitudes.length; i++) {
 return div;
 };
 legend.addTo(map);
-    // Then we add the earthquake layer to our map.
+    // Then we add the earthquake and techtonic layer to our map.
     earthquakes.addTo(map);
-});
+    techtonicplates.addTo(map);
